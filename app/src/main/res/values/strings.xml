@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AndroidInstagram</string>
+
+    <string name="usernameLabel">Username:</string>
+    <string name="followersLabel">Followers:</string>
+    <string name="followingLabel">Following:</string>
 </resources>
