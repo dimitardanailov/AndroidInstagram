@@ -47,17 +47,16 @@ public class InstagramDialog extends Dialog {
         mListener = listener;
     }
 
-    public interface OAuthDialogListener {
-        public abstract void onComplete(String accessToken);
-        public abstract void onError(String error);
-    }
+
 
     private class OAuthWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url.startsWith(Inst))
+            // if (url.startsWith(Inst))
         }
     }
+
+
 }
 
     @Override
@@ -72,3 +71,13 @@ public class InstagramDialog extends Dialog {
         }
         return false;
     }
+
+    private class OAuthWebViewClient extends WebViewClient {
+
+    }
+
+    public interface OAuthDialogListener {
+        public abstract void onComplete(String accessToken);
+        public abstract void onError(String error);
+    }
+}
