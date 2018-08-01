@@ -34,12 +34,12 @@ public class InstagramApp {
     private String mClientId = "";
     private String mClientSecret = "";
 
-    private static int WHAT_FINALIZE = 0;
-    private static int WHAT_ERROR = 1;
-    private static int WHAT_FETCH_INFO = 2;
+    public static int WHAT_FINALIZE = 0;
+    public static int WHAT_ERROR = 1;
+    public static int WHAT_FETCH_INFO = 2;
 
     // End points
-    private static String mCallbackUrl = "";
+    public static String mCallbackUrl = "";
     private static final String AUTH_URL = "https://api.instagram.com/oauth/authorize/";
     private static final String TOKEN_URL = "https://api.instagram.com/oauth/access_token";
     private static final String API_URL = "https://api.instagram.com/v1";
@@ -117,7 +117,7 @@ public class InstagramApp {
     }
 
     public void authorize() {
-
+        mDialog.show();
     }
 
     public void resetAccessToken() {
@@ -136,22 +136,23 @@ public class InstagramApp {
 
                 try {
                     URL url = new URL(TOKEN_URL);
+                    // URL url = new URL(mTokenUrl + "&code=" + code);
                     Log.i(TAG, "Opening Token URL " + url.toString());
-                    HttpURLConnection urlConnection =
-                            (HttpURLConnection) url.openConnection();
+                    HttpURLConnection urlConnection = (HttpURLConnection) url
+                            .openConnection();
                     urlConnection.setRequestMethod("POST");
                     urlConnection.setDoInput(true);
                     urlConnection.setDoOutput(true);
-
-                    OutputStreamWriter writer =
-                            new OutputStreamWriter(urlConnection.getOutputStream());
+                    // urlConnection.connect();
+                    OutputStreamWriter writer = new OutputStreamWriter(
+                            urlConnection.getOutputStream());
                     writer.write("client_id=" + mClientId + "&client_secret="
                             + mClientSecret + "&grant_type=authorization_code"
                             + "&redirect_uri=" + mCallbackUrl + "&code=" + code);
                     writer.flush();
-
-                    String response = Utils.streamToString(urlConnection.getInputStream());
-                    Log.i(TAG, "response" + response);
+                    String response = Utils.streamToString(urlConnection
+                            .getInputStream());
+                    Log.i(TAG, "response " + response);
 
                     JSONObject jsonObject = (JSONObject) new JSONTokener(response).nextValue();
 

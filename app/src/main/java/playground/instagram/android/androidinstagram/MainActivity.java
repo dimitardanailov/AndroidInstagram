@@ -1,25 +1,62 @@
 package playground.instagram.android.androidinstagram;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private RelativeLayout mLayoutAfterLoginLayer;
     private Button mButtonInstagramLogin;
     private Button mButtonViewInformation;
+    private InstagramApp mInstagramApp;
+    private static final String TAG = MainActivity.class.getName();
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message message) {
+            if (message.what == InstagramApp.WHAT_FINALIZE) {
+                Log.d(TAG, "User info ....");
+            } else if (message.what == InstagramApp.WHAT_ERROR) {
+                Toast.makeText(MainActivity.this, "Check your network", Toast.LENGTH_LONG).show();
+            }
+
+            return false;
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mInstagramApp = new InstagramApp(this,
+            AppConfig.CLIENT_ID,
+            AppConfig.CLIENT_SECRET,
+            AppConfig.CALLBACK_URL
+        );
+        mInstagramApp.setListener(new InstagramApp.OAuthAuthenticationListener() {
+            @Override
+            public void onSuccess() {
+                mLayoutAfterLoginLayer.setVisibility(View.VISIBLE);
+                mButtonInstagramLogin.setVisibility(View.GONE);
+                mInstagramApp.fetchUserName(handler);
+            }
+
+            @Override
+            public void onFail(String error) {
+                Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
+            }
+        });
 
         setupUI();
     }
@@ -40,19 +77,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.buttonInstagramLogin:
-                initializeLoginThroughInstagram();
+                mInstagramApp.authorize();
                 break;
             case R.id.buttonViewInformation:
-                displayInstragramData();
+                displayInstagramInfo();
                 break;
         }
     }
 
-    private void initializeLoginThroughInstagram() {
-
-    }
-
-    private void displayInstragramData() {
+    private void displayInstagramInfo() {
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = (RelativeLayout) inflater.inflate(R.layout.profile_view, null);
 
@@ -64,5 +97,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         TextView textViewFollowers = (TextView) view.findViewById(R.id.textViewLabelFollowers);
         TextView textViewFollowing = (TextView) view.findViewById(R.id.textViewValueFollowing);
 
+        Toast.makeText(MainActivity.this, "Display user data", Toast.LENGTH_LONG).show();
+
+        dialog.create().show();
     }
 }
