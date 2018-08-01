@@ -73,6 +73,7 @@ public class InstagramApp {
         InstagramDialog.OAuthDialogListener listener = new InstagramDialog.OAuthDialogListener() {
             @Override
             public void onComplete(String code) {
+                Log.d(TAG, "Code: " + code);
                 getAccessToken(code);
             }
 
@@ -146,9 +147,14 @@ public class InstagramApp {
                     // urlConnection.connect();
                     OutputStreamWriter writer = new OutputStreamWriter(
                             urlConnection.getOutputStream());
-                    writer.write("client_id=" + mClientId + "&client_secret="
+
+                    String writeParams = "client_id=" + mClientId + "&client_secret="
                             + mClientSecret + "&grant_type=authorization_code"
-                            + "&redirect_uri=" + mCallbackUrl + "&code=" + code);
+                            + "&redirect_uri=" + mCallbackUrl + "&code=" + code;
+
+                    Log.i(TAG, writeParams);
+
+                    writer.write(writeParams);
                     writer.flush();
                     String response = Utils.streamToString(urlConnection
                             .getInputStream());
@@ -168,8 +174,6 @@ public class InstagramApp {
                         instagramUser.getFullName()
                     );
 
-                    mHandler.sendMessage(mHandler.obtainMessage(what, 1, 0));
-
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -178,6 +182,8 @@ public class InstagramApp {
                     what = WHAT_ERROR;
                     e.printStackTrace();
                 }
+
+                mHandler.sendMessage(mHandler.obtainMessage(what, 1, 0));
             }
         }.start();
     }
