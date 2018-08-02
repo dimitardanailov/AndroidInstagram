@@ -24,9 +24,8 @@ public class InstagramDialog extends Dialog {
     static final float[] DIMENSIONS_LANDSCAPE = { 460, 260 };
     static final float[] DIMENSIONS_PORTRAIT = { 280, 420 };
     static final FrameLayout.LayoutParams FILL = new FrameLayout.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        ViewGroup.LayoutParams.MATCH_PARENT
-    );
+            ViewGroup.LayoutParams.FILL_PARENT,
+            ViewGroup.LayoutParams.FILL_PARENT);
     static final int MARGIN = 4;
     static final int PADDING = 2;
 
@@ -37,7 +36,7 @@ public class InstagramDialog extends Dialog {
     private RelativeLayout mContent;
     private TextView mTitle;
 
-    private static final String TAG = InstagramDialog.class.getName();
+    private static final String TAG = "Instagram-WebView";
 
     public InstagramDialog(Context context, String url,
                            OAuthDialogListener listener) {
@@ -51,7 +50,12 @@ public class InstagramDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        initialSetup();
+        mSpinner = new ProgressDialog(getContext());
+        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mSpinner.setMessage("Loading...");
+        mContent = new RelativeLayout(getContext());
+        setUpTitle();
+        setUpWebView();
 
         Display display = getWindow().getWindowManager().getDefaultDisplay();
         final float scale = getContext().getResources().getDisplayMetrics().density;
@@ -59,28 +63,11 @@ public class InstagramDialog extends Dialog {
                 : DIMENSIONS_LANDSCAPE;
 
         addContentView(mContent, new FrameLayout.LayoutParams(
-            (int) (dimensions[0] * scale + 0.5f),
-            (int) (dimensions[1] * scale + 0.5f)
-        ));
-
+                (int) (dimensions[0] * scale + 0.5f), (int) (dimensions[1]
+                * scale + 0.5f)));
         CookieSyncManager.createInstance(getContext());
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeAllCookie();
-    }
-
-    private void initialSetup() {
-        setUpSpinner();
-
-        mContent = new RelativeLayout(getContext());
-
-        setUpTitle();
-        setUpWebView();
-    }
-
-    private void setUpSpinner() {
-        mSpinner = new ProgressDialog(getContext());
-        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mSpinner.setMessage("Loading...");
     }
 
     private void setUpTitle() {
@@ -91,6 +78,7 @@ public class InstagramDialog extends Dialog {
         mTitle.setTypeface(Typeface.DEFAULT_BOLD);
         mTitle.setBackgroundColor(Color.BLACK);
         mTitle.setPadding(MARGIN + PADDING, MARGIN, MARGIN, MARGIN);
+        mContent.addView(mTitle);
     }
 
     private void setUpWebView() {
@@ -104,32 +92,25 @@ public class InstagramDialog extends Dialog {
         mContent.addView(mWebView);
     }
 
-    public interface OAuthDialogListener {
-        public abstract void onComplete(String accessToken);
-        public abstract void onError(String error);
-    }
-
     private class OAuthWebViewClient extends WebViewClient {
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            Log.d(TAG, "Redirecting URL " + url);
+
             if (url.startsWith(InstagramApp.mCallbackUrl)) {
                 String urls[] = url.split("=");
-
-                if (urls != null && urls.length > 0) {
-                    mListener.onComplete(urls[1]);
-                    InstagramDialog.this.dismiss();
-
-                    return true;
-                }
+                mListener.onComplete(urls[1]);
+                InstagramDialog.this.dismiss();
+                return true;
             }
-
             return false;
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode,
                                     String description, String failingUrl) {
-            Log.d(TAG, "Page error" + description);
+            Log.d(TAG, "Page error: " + description);
 
             super.onReceivedError(view, errorCode, description, failingUrl);
             mListener.onError(description);
@@ -138,7 +119,7 @@ public class InstagramDialog extends Dialog {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            Log.d(TAG, "Loading URL:" + url);
+            Log.d(TAG, "Loading URL: " + url);
 
             super.onPageStarted(view, url, favicon);
             mSpinner.show();
@@ -154,5 +135,12 @@ public class InstagramDialog extends Dialog {
             Log.d(TAG, "onPageFinished URL: " + url);
             mSpinner.dismiss();
         }
+
     }
+
+    public interface OAuthDialogListener {
+        public abstract void onComplete(String accessToken);
+        public abstract void onError(String error);
+    }
+
 }

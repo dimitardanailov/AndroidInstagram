@@ -8,24 +8,28 @@ import java.io.InputStreamReader;
 public class Utils {
 
     public static String streamToString(InputStream is) throws IOException {
-        if (is == null) return "";
+        String str = "";
 
-        StringBuilder sb = new StringBuilder();
-        String line;
+        if (is != null) {
+            StringBuilder sb = new StringBuilder();
+            String line;
 
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            try {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(is));
 
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+
+                reader.close();
+            } finally {
+                is.close();
             }
 
-        } catch (IOException ex) {
-            ex.printStackTrace();;
-        } finally {
-            is.close();
+            str = sb.toString();
         }
 
-        return sb.toString();
+        return str;
     }
 }
