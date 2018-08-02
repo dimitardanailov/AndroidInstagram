@@ -17,7 +17,13 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Retrofit;
 
 public class InstagramApp {
 
@@ -25,7 +31,7 @@ public class InstagramApp {
     private InstagramDialog mDialog;
     private OAuthAuthenticationListener mListener;
     private ProgressBar mProgressBar;
-    private HashMap<String, String> userInfo = new HashMap<String, String>();
+    private InstagramUser user;
     private Context mContext;
 
     private String mAuthUrl;
@@ -37,6 +43,7 @@ public class InstagramApp {
     public static int WHAT_FINALIZE = 0;
     public static int WHAT_ERROR = 1;
     public static int WHAT_FETCH_INFO = 2;
+    private String ERROR_INFO = "";
 
     // End points
     public static String mCallbackUrl = "";
@@ -89,8 +96,8 @@ public class InstagramApp {
         ////// mProgress.setCancelable(false);
     }
 
-    public HashMap<String, String> getUserInfo() {
-        return userInfo;
+    public InstagramUser getUser() {
+        return user;
     }
 
     public boolean hasAccessToken() {
@@ -136,6 +143,10 @@ public class InstagramApp {
                 int what = WHAT_FETCH_INFO;
 
                 try {
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl(TOKEN_URL)
+                            .build();
+
                     URL url = new URL(TOKEN_URL);
                     // URL url = new URL(mTokenUrl + "&code=" + code);
                     Log.i(TAG, "Opening Token URL " + url.toString());
@@ -158,29 +169,59 @@ public class InstagramApp {
                     writer.flush();
                     String response = Utils.streamToString(urlConnection
                             .getInputStream());
-                    Log.i(TAG, "response " + response);
+                    Log.i(TAG, " getAccessToken _____ response " + response);
+                    JSONObject jsonObj = (JSONObject) new JSONTokener(response)
+                            .nextValue();
 
+                    mAccessToken = jsonObj.getString("access_token");
+                    Log.i(TAG, "Got access token: " + mAccessToken);
+
+                    String id = jsonObj.getJSONObject("user").getString("id");
+                    String user = jsonObj.getJSONObject("user").getString(
+                            "username");
+                    String name = jsonObj.getJSONObject("user").getString(
+                            "full_name");
+
+                    mSession.storeInstagramDetails(mAccessToken, id, user, name);
+
+
+                    /*
                     JSONObject jsonObject = (JSONObject) new JSONTokener(response).nextValue();
 
                     mAccessToken = jsonObject.optString(JSON_KEY_ACCESS_TOKEN);
                     Log.i(TAG, "Got access token: " + mAccessToken);
 
-                    InstagramUser instagramUser = InstagramJsonUtil.createUser(jsonObject);
+                    user = InstagramJsonUtil.createBasicUser(jsonObject);
+
+                    Log.d(TAG, "Username: + " + user.getUsername());
 
                     mSession.storeInstagramDetails(
                         mAccessToken,
-                        instagramUser.getId(),
-                        instagramUser.getUsername(),
-                        instagramUser.getFullName()
-                    );
+                        user.getId(),
+                        user.getUsername(),
+                        user.getFullName()
+                    ); */
 
                 } catch (MalformedURLException e) {
+                    what = WHAT_ERROR;
                     e.printStackTrace();
+                    ERROR_INFO = e.toString();
+
+                    Log.e(TAG, "MalformedURLException: " + e.toString());
+
                 } catch (IOException e) {
+                    what = WHAT_ERROR;
                     e.printStackTrace();
+                    ERROR_INFO = e.toString();
+
+                    Log.e(TAG, "IOException: " + e.toString());
+
                 } catch (Exception e) {
                     what = WHAT_ERROR;
                     e.printStackTrace();
+                    ERROR_INFO = e.toString();
+
+                    Log.e(TAG, "Exception: " + e.toString());
                 }
 
                 mHandler.sendMessage(mHandler.obtainMessage(what, 1, 0));
@@ -209,7 +250,6 @@ public class InstagramApp {
                     System.out.println(response);
                     JSONObject jsonObject = (JSONObject) new JSONTokener(response).nextValue();
 
-
                 } catch (Exception ex) {
                     what = WHAT_ERROR;
                     ex.printStackTrace();
@@ -226,9 +266,9 @@ public class InstagramApp {
         public void handleMessage(Message message) {
             if (message.what == WHAT_ERROR) {
                 if (message.arg1 == 1) {
-                    mListener.onFail("Failed to get access token");
+                    mListener.onFail("Failed to get access token." + ERROR_INFO);
                 } else if (message.arg2 == 2) {
-                    mListener.onFail("Failed to get user information");
+                    mListener.onFail("Failed to get user information." + ERROR_INFO);
                 }
             } else if (message.what == WHAT_FETCH_INFO) {
                 mListener.onSuccess();

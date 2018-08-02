@@ -19,13 +19,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RelativeLayout mLayoutAfterLoginLayer;
     private Button mButtonInstagramLogin;
     private Button mButtonViewInformation;
+
     private InstagramApp mInstagramApp;
+    private InstagramUser user;
+
     private static final String TAG = MainActivity.class.getName();
+
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             if (message.what == InstagramApp.WHAT_FINALIZE) {
-                Log.d(TAG, "User info ....");
+                user = mInstagramApp.getUser();
             } else if (message.what == InstagramApp.WHAT_ERROR) {
                 Toast.makeText(MainActivity.this, "Check your network", Toast.LENGTH_LONG).show();
             }
@@ -94,8 +98,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.setView(view);
 
         TextView textViewUsername = (TextView) view.findViewById(R.id.textViewValueUsername);
+        // textViewUsername.setText(user.getUsername());
+
         TextView textViewFollowers = (TextView) view.findViewById(R.id.textViewLabelFollowers);
+        //textViewFollowers.setText(user.getFollowers());
+
         TextView textViewFollowing = (TextView) view.findViewById(R.id.textViewValueFollowing);
+        // textViewFollowing.setText(user.getFollowedBy());
 
         Toast.makeText(MainActivity.this, "Display user data", Toast.LENGTH_LONG).show();
 

@@ -10,7 +10,7 @@ public class InstagramUser {
     private String bio = "";
     private String website = "";
     private String counts = "";
-    private String follows = "";
+    private String followers = "";
     private String followedBy = "";
     private String media = "";
     private String meta = "";
@@ -97,12 +97,12 @@ public class InstagramUser {
     /*** Counts ***/
 
     /*** Follows ***/
-    public String getFollows() {
-        return this.follows;
+    public String getFollowers() {
+        return this.followers;
     }
 
-    public void setFollows(String follows) {
-        this.follows = follows;
+    public void setFollowers(String followers) {
+        this.followers = followers;
     }
     /*** Follows ***/
 
